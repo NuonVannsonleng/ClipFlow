@@ -1,0 +1,301 @@
+@import 'tailwindcss';
+
+/* Dark mode is driven by a class on <html>, set before paint by an inline
+   script in the layout, so there is no flash of the wrong theme. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+   Design tokens
+   Raw values live on :root / .dark; @theme maps them onto Tailwind utilities
+   so every component speaks the same vocabulary (bg-surface, text-muted, ...).
+--------------------------------------------------------------------------- */
+
+:root {
+  color-scheme: light;
+
+  --cf-bg: hsl(240 20% 99%);
+  --cf-bg-subtle: hsl(240 18% 96.5%);
+  --cf-surface: hsl(0 0% 100%);
+  --cf-surface-elevated: hsl(0 0% 100%);
+  --cf-surface-sunken: hsl(240 16% 97%);
+  --cf-border: hsl(240 12% 90%);
+  --cf-border-strong: hsl(240 10% 82%);
+  --cf-fg: hsl(240 20% 10%);
+  --cf-fg-muted: hsl(240 8% 42%);
+  --cf-fg-subtle: hsl(240 7% 56%);
+
+  --cf-primary: hsl(252 82% 60%);
+  --cf-primary-hover: hsl(252 82% 55%);
+  --cf-primary-soft: hsl(252 90% 96%);
+  --cf-primary-fg: hsl(0 0% 100%);
+  --cf-accent: hsl(190 92% 45%);
+  --cf-accent-soft: hsl(190 90% 95%);
+
+  --cf-success: hsl(152 62% 38%);
+  --cf-success-soft: hsl(152 62% 95%);
+  --cf-warning: hsl(35 92% 46%);
+  --cf-warning-soft: hsl(35 92% 95%);
+  --cf-danger: hsl(354 72% 52%);
+  --cf-danger-soft: hsl(354 80% 96%);
+
+  --cf-ring: hsl(252 82% 60% / 0.45);
+  --cf-shadow-color: 240 30% 25%;
+
+  --cf-shadow-xs: 0 1px 2px hsl(var(--cf-shadow-color) / 0.06);
+  --cf-shadow-sm: 0 1px 3px hsl(var(--cf-shadow-color) / 0.08), 0 1px 2px hsl(var(--cf-shadow-color) / 0.04);
+  --cf-shadow-md: 0 4px 14px hsl(var(--cf-shadow-color) / 0.09), 0 2px 4px hsl(var(--cf-shadow-color) / 0.05);
+  --cf-shadow-lg: 0 12px 32px hsl(var(--cf-shadow-color) / 0.12), 0 4px 8px hsl(var(--cf-shadow-color) / 0.05);
+  --cf-shadow-glow: 0 10px 30px hsl(252 82% 60% / 0.28);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --cf-bg: hsl(240 16% 6.5%);
+  --cf-bg-subtle: hsl(240 14% 9%);
+  --cf-surface: hsl(240 13% 10.5%);
+  --cf-surface-elevated: hsl(240 12% 13.5%);
+  --cf-surface-sunken: hsl(240 15% 8%);
+  --cf-border: hsl(240 10% 20%);
+  --cf-border-strong: hsl(240 9% 28%);
+  --cf-fg: hsl(240 20% 98%);
+  --cf-fg-muted: hsl(240 8% 68%);
+  --cf-fg-subtle: hsl(240 7% 55%);
+
+  --cf-primary: hsl(252 88% 70%);
+  --cf-primary-hover: hsl(252 88% 76%);
+  --cf-primary-soft: hsl(252 40% 20%);
+  --cf-primary-fg: hsl(250 60% 8%);
+  --cf-accent: hsl(190 90% 58%);
+  --cf-accent-soft: hsl(190 50% 18%);
+
+  --cf-success: hsl(152 55% 55%);
+  --cf-success-soft: hsl(152 40% 16%);
+  --cf-warning: hsl(35 90% 62%);
+  --cf-warning-soft: hsl(35 45% 17%);
+  --cf-danger: hsl(354 80% 68%);
+  --cf-danger-soft: hsl(354 40% 19%);
+
+  --cf-ring: hsl(252 88% 70% / 0.55);
+  --cf-shadow-color: 240 60% 2%;
+
+  --cf-shadow-xs: 0 1px 2px hsl(var(--cf-shadow-color) / 0.5);
+  --cf-shadow-sm: 0 1px 3px hsl(var(--cf-shadow-color) / 0.55), 0 1px 2px hsl(var(--cf-shadow-color) / 0.4);
+  --cf-shadow-md: 0 6px 18px hsl(var(--cf-shadow-color) / 0.6), 0 2px 6px hsl(var(--cf-shadow-color) / 0.45);
+  --cf-shadow-lg: 0 18px 44px hsl(var(--cf-shadow-color) / 0.7), 0 6px 12px hsl(var(--cf-shadow-color) / 0.5);
+  --cf-shadow-glow: 0 12px 36px hsl(252 88% 60% / 0.35);
+}
+
+@theme inline {
+  --color-bg: var(--cf-bg);
+  --color-bg-subtle: var(--cf-bg-subtle);
+  --color-surface: var(--cf-surface);
+  --color-elevated: var(--cf-surface-elevated);
+  --color-sunken: var(--cf-surface-sunken);
+  --color-line: var(--cf-border);
+  --color-line-strong: var(--cf-border-strong);
+  --color-fg: var(--cf-fg);
+  --color-muted: var(--cf-fg-muted);
+  --color-subtle: var(--cf-fg-subtle);
+
+  --color-primary: var(--cf-primary);
+  --color-primary-hover: var(--cf-primary-hover);
+  --color-primary-soft: var(--cf-primary-soft);
+  --color-primary-fg: var(--cf-primary-fg);
+  --color-accent: var(--cf-accent);
+  --color-accent-soft: var(--cf-accent-soft);
+
+  --color-success: var(--cf-success);
+  --color-success-soft: var(--cf-success-soft);
+  --color-warning: var(--cf-warning);
+  --color-warning-soft: var(--cf-warning-soft);
+  --color-danger: var(--cf-danger);
+  --color-danger-soft: var(--cf-danger-soft);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-khmer: var(--font-khmer), 'Noto Sans Khmer', var(--font-inter), sans-serif;
+
+  --radius-xs: 0.375rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.75rem;
+
+  --shadow-xs: var(--cf-shadow-xs);
+  --shadow-sm: var(--cf-shadow-sm);
+  --shadow-md: var(--cf-shadow-md);
+  --shadow-lg: var(--cf-shadow-lg);
+  --shadow-glow: var(--cf-shadow-glow);
+
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+
+* {
+  border-color: var(--cf-border);
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5.5rem;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--cf-bg);
+  color: var(--cf-fg);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100dvh;
+}
+
+html[lang='km'] body {
+  font-family: var(--font-khmer), 'Noto Sans Khmer', ui-sans-serif, system-ui, sans-serif;
+  line-height: 1.75;
+}
+
+::selection {
+  background: var(--cf-primary);
+  color: var(--cf-primary-fg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--cf-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Only hidden until focused: keyboard users get a real skip link. */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  transition: top 0.2s var(--ease-out-quint);
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--cf-border-strong);
+  border-radius: 999px;
+  border: 3px solid var(--cf-bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cf-fg-subtle);
+}
+
+/* ---------------------------------------------------------------------------
+   Utilities
+--------------------------------------------------------------------------- */
+
+@utility text-gradient {
+  background-image: linear-gradient(100deg, var(--cf-fg) 10%, var(--cf-primary) 55%, var(--cf-accent) 95%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+@utility surface-card {
+  background-color: var(--cf-surface);
+  border: 1px solid var(--cf-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--cf-shadow-sm);
+}
+
+@utility glass {
+  background-color: color-mix(in srgb, var(--cf-surface) 78%, transparent);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+}
+
+@keyframes cf-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -18px, 0) scale(1.04);
+  }
+}
+
+@keyframes cf-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes cf-pulse-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes cf-indeterminate {
+  0% {
+    transform: translateX(-100%) scaleX(0.4);
+  }
+  50% {
+    transform: translateX(20%) scaleX(0.7);
+  }
+  100% {
+    transform: translateX(140%) scaleX(0.4);
+  }
+}
+
+.cf-float {
+  animation: cf-float 14s ease-in-out infinite;
+}
+
+.cf-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--cf-fg) 8%, transparent),
+    transparent
+  );
+  animation: cf-shimmer 1.6s infinite;
+}
+
+.cf-indeterminate {
+  animation: cf-indeterminate 1.4s var(--ease-out-quint) infinite;
+}
+
+/* Respect the user's motion preference everywhere, including the decorative
+   background and the Framer Motion transitions. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
