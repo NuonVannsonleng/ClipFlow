@@ -209,6 +209,50 @@ See `server/.env.example` and `web/.env.example`. The most useful knobs:
 
 ---
 
+## Deployment
+
+The two halves have different hosting needs, and this matters more than it
+looks:
+
+| Part | Where it can run | Why |
+| ---- | ---------------- | --- |
+| `web/` | Vercel, Netlify, any Next.js host | Ordinary Next.js app |
+| `server/` | Container host (Railway, Render, Fly.io, a VPS) | Needs a persistent process, a writable disk, and the yt-dlp/FFmpeg binaries |
+
+**The API cannot run on Vercel.** It is not a configuration problem. Serverless
+functions have no yt-dlp or FFmpeg binary, an ephemeral read-only filesystem,
+an execution limit far shorter than a media download, and no process that
+survives between requests — which the job queue, SSE streams, and temp-file
+sweeper all require.
+
+### Frontend on Vercel
+
+Set the project's **Root Directory to the repository root** (not `server/`).
+The committed `vercel.json` then builds only the web workspace:
+
+```json
+{ "buildCommand": "npm run build --workspace web", "outputDirectory": "web/.next" }
+```
+
+Set one environment variable, `API_ORIGIN`, to the public URL of your deployed
+API. If you forget, the build fails with an explicit message rather than
+deploying a site whose every request times out against `localhost`.
+
+### API on a container host
+
+```bash
+# from the repository root, so the workspace lockfile is available
+docker build -f server/Dockerfile -t clipflow-api .
+docker run -p 4000:4000 -e CORS_ORIGINS=https://your-site.example clipflow-api
+```
+
+The image installs FFmpeg and yt-dlp (nightly channel) and runs as a non-root
+user. Railway, Render, and Fly.io will each build this Dockerfile directly from
+the repository. Set `CORS_ORIGINS` to your frontend's URL and `PUBLIC_API_URL`
+to the API's own public URL.
+
+---
+
 ## Platform trademarks
 
 The platform cards show each service's own mark, generated into

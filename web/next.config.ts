@@ -7,6 +7,19 @@ import type { NextConfig } from 'next';
  */
 const apiOrigin = (process.env.API_ORIGIN ?? 'http://localhost:4000').replace(/\/$/, '');
 
+// A cloud build that still points at localhost would deploy successfully and
+// then fail every request at runtime, which is far harder to diagnose than a
+// failed build. Local production builds are left alone - localhost is correct
+// there.
+const isCloudBuild = Boolean(process.env.VERCEL || process.env.NETLIFY || process.env.CF_PAGES);
+if (isCloudBuild && /^https?:\/\/(localhost|127\.0\.0\.1)/.test(apiOrigin)) {
+  throw new Error(
+    'API_ORIGIN is still http://localhost:4000 on a cloud build. ' +
+      'The ClipFlow API is a long-running server and cannot be deployed here; ' +
+      'host it separately (see server/Dockerfile) and set API_ORIGIN to its public URL.',
+  );
+}
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,

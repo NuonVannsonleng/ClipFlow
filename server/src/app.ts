@@ -1,7 +1,7 @@
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import express, { type Express } from 'express';
-import helmet from 'helmet';
+import express, { type Express, type RequestHandler } from 'express';
+import helmetImport from 'helmet';
 import { env } from './config/env.js';
 import { AppError } from './core/errors.js';
 import { errorHandler, notFound } from './http/middleware/errorHandler.js';
@@ -13,6 +13,20 @@ import { historyRouter } from './http/routes/history.js';
 import { jobRouter } from './http/routes/job.js';
 import { metaRouter } from './http/routes/meta.js';
 import { processRouter } from './http/routes/process.js';
+
+/**
+ * helmet publishes separate CJS and ESM type shapes. Which one a build host
+ * resolves depends on its install layout, and when it picks the CJS one the
+ * callable sits on `.default` instead of on the import itself — enough to fail
+ * the build on a clean install even though it compiles locally. Normalising
+ * both shapes here keeps `tsc` independent of the host.
+ */
+type HelmetFactory = (options?: Record<string, unknown>) => RequestHandler;
+
+const helmet: HelmetFactory =
+  typeof helmetImport === 'function'
+    ? (helmetImport as unknown as HelmetFactory)
+    : ((helmetImport as { default: unknown }).default as HelmetFactory);
 
 export function createApp(): Express {
   const app = express();
