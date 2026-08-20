@@ -4,6 +4,7 @@ import express, { type Express, type RequestHandler } from 'express';
 import helmetImport from 'helmet';
 import { env } from './config/env.js';
 import { AppError } from './core/errors.js';
+import { logger } from './core/logger.js';
 import { errorHandler, notFound } from './http/middleware/errorHandler.js';
 import { generalLimiter } from './http/middleware/rateLimit.js';
 import { session } from './http/middleware/session.js';
@@ -51,6 +52,14 @@ export function createApp(): Express {
           callback(null, true);
           return;
         }
+        // A misconfigured CORS_ORIGINS rejects every request from the real
+        // frontend, and the browser only sees a generic 400. Naming the
+        // rejected origin and the current allow-list makes that a one-look
+        // diagnosis in the server logs instead of a guessing game.
+        logger.warn(
+          `CORS rejected origin ${origin}. CORS_ORIGINS currently allows: ` +
+            `${env.corsOrigins.join(', ') || '(nothing)'}`,
+        );
         callback(new AppError('BAD_REQUEST', 'Origin not allowed.'));
       },
       credentials: true,
