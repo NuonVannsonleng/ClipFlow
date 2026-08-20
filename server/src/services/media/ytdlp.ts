@@ -124,7 +124,7 @@ async function runYtdlp({
       reject(new AppError('TOOLS_UNAVAILABLE', 'Media tooling could not be started.'));
     });
 
-    child.on('close', (code) => {
+    child.on('close', (code, killSignal) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
@@ -133,7 +133,26 @@ async function runYtdlp({
         resolve({ stdout, stderr });
         return;
       }
-      logger.warn(`yt-dlp exited with ${code}`, stderr.slice(-500));
+
+      // A child killed by a signal we did not send is almost always the
+      // kernel's OOM killer reclaiming the largest process, which leaves no
+      // message in stderr at all. Reporting that as a generic failure sends
+      // people hunting through their code for a bug that is really a memory
+      // limit, so it gets its own log line and error code.
+      if (killSignal === 'SIGKILL' && !signal?.aborted) {
+        logger.error(
+          'yt-dlp was killed by the system (SIGKILL). This is almost always the ' +
+            'host running out of memory. Lower MAX_CONCURRENT_JOBS or give the ' +
+            'service more RAM.',
+        );
+        reject(new AppError('PROCESSING_FAILED', 'The server ran out of resources for that download.'));
+        return;
+      }
+
+      logger.warn(
+        `yt-dlp exited with code=${code} signal=${killSignal ?? 'none'}`,
+        stderr.slice(-800) || '(no stderr output)',
+      );
       reject(classify(stderr));
     });
   });
