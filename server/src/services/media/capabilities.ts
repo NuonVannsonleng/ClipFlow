@@ -18,20 +18,29 @@ function candidatesFor(name: string, override: string): string[] {
   return list;
 }
 
+/**
+ * yt-dlp is a Python zipapp that unpacks itself on every invocation, so it can
+ * take several seconds to answer on a small or throttled host — far longer
+ * than the native FFmpeg binaries. Each tool is asked with the flag it
+ * actually supports, so a probe never pays to spawn the process twice.
+ */
+const VERSION_FLAG: Record<string, string> = {
+  'yt-dlp': '--version',
+  ffmpeg: '-version',
+  ffprobe: '-version',
+};
+
+const PROBE_TIMEOUT_MS = 30_000;
+
 async function probe(name: string, override: string): Promise<string | null> {
+  const flag = VERSION_FLAG[name] ?? '--version';
   for (const candidate of candidatesFor(name, override)) {
     if (candidate.includes(path.sep) && !fs.existsSync(candidate)) continue;
     try {
-      await run(candidate, ['-version'], { timeout: 10_000, windowsHide: true });
+      await run(candidate, [flag], { timeout: PROBE_TIMEOUT_MS, windowsHide: true });
       return candidate;
     } catch (error) {
-      // yt-dlp uses --version, ffmpeg uses -version; try the other spelling.
-      try {
-        await run(candidate, ['--version'], { timeout: 10_000, windowsHide: true });
-        return candidate;
-      } catch {
-        logger.debug(`tool probe failed for ${candidate}`, (error as Error).message);
-      }
+      logger.debug(`tool probe failed for ${candidate}`, (error as Error).message);
     }
   }
   return null;
@@ -45,18 +54,44 @@ export interface ResolvedTools {
 
 let cached: ResolvedTools | null = null;
 let cachedAt = 0;
-const CACHE_MS = 60_000;
+let inFlight: Promise<ResolvedTools> | null = null;
+
+/**
+ * A binary that was found does not disappear, so a good result is held for a
+ * long time. A failed probe is retried sooner, because on a constrained host
+ * it usually means the machine was momentarily too busy rather than that the
+ * tool is missing — re-probing every minute is what made the API flap between
+ * "ready" and TOOLS_UNAVAILABLE.
+ */
+const CACHE_MS_FOUND = 30 * 60 * 1000;
+const CACHE_MS_MISSING = 30_000;
 
 export async function resolveTools(force = false): Promise<ResolvedTools> {
-  if (!force && cached && Date.now() - cachedAt < CACHE_MS) return cached;
-  const [ytdlp, ffmpeg, ffprobe] = await Promise.all([
-    probe('yt-dlp', env.ytdlpPath),
-    probe('ffmpeg', env.ffmpegPath),
-    probe('ffprobe', env.ffprobePath),
-  ]);
-  cached = { ytdlp, ffmpeg, ffprobe };
-  cachedAt = Date.now();
-  return cached;
+  if (!force && cached) {
+    const ttl = cached.ytdlp ? CACHE_MS_FOUND : CACHE_MS_MISSING;
+    if (Date.now() - cachedAt < ttl) return cached;
+  }
+
+  // Concurrent requests must not each spawn their own probe: on a small
+  // instance that is exactly the memory spike that makes probes time out.
+  if (inFlight) return inFlight;
+
+  inFlight = (async () => {
+    try {
+      const [ytdlp, ffmpeg, ffprobe] = await Promise.all([
+        probe('yt-dlp', env.ytdlpPath),
+        probe('ffmpeg', env.ffmpegPath),
+        probe('ffprobe', env.ffprobePath),
+      ]);
+      cached = { ytdlp, ffmpeg, ffprobe };
+      cachedAt = Date.now();
+      return cached;
+    } finally {
+      inFlight = null;
+    }
+  })();
+
+  return inFlight;
 }
 
 export async function getCapabilities(): Promise<Capabilities> {
