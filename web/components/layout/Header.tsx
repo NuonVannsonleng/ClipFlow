@@ -17,6 +17,51 @@ interface NavItem {
   labelKey: string;
 }
 
+/**
+ * Highlights whichever anchor section is currently under the reader's eye.
+ * The tall negative margins leave a thin band across the middle of the
+ * viewport, so exactly one section qualifies at a time and the pill does not
+ * flicker between two of them while scrolling.
+ */
+function useActiveSection(ids: string[], enabled: boolean): string | null {
+  const [active, setActive] = useState<string | null>(null);
+  const key = ids.join(',');
+
+  useEffect(() => {
+    if (!enabled) {
+      setActive(null);
+      return;
+    }
+
+    const elements = key
+      .split(',')
+      .map((id) => document.getElementById(id))
+      .filter((element): element is HTMLElement => element !== null);
+    if (elements.length === 0) return;
+
+    const visible = new Set<string>();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) visible.add(entry.target.id);
+          else visible.delete(entry.target.id);
+        }
+        // Topmost qualifying section wins. When none qualifies — scrolling
+        // through a section with no nav entry — the previous one is kept, so
+        // the pill holds still instead of blinking back to Home.
+        const first = elements.find((element) => visible.has(element.id));
+        if (first) setActive(first.id);
+      },
+      { rootMargin: '-40% 0px -55% 0px', threshold: 0 },
+    );
+
+    elements.forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  }, [key, enabled]);
+
+  return active;
+}
+
 const NAV: NavItem[] = [
   { href: '/', labelKey: 'nav.home' },
   { href: '/downloader', labelKey: 'nav.downloader' },
@@ -54,8 +99,19 @@ export function Header() {
     };
   }, [menuOpen]);
 
-  const isActive = (href: string) =>
-    href === '/' ? pathname === '/' : pathname.startsWith(href.split('#')[0] ?? href) && href !== '/';
+  const onHome = pathname === '/';
+  const activeSection = useActiveSection(['top', 'features', 'pricing', 'faq'], onHome);
+
+  /**
+   * Exactly one item is ever active. That matters beyond looks: the sliding
+   * pill is a shared `layoutId`, and more than one owner makes Framer Motion
+   * animate it between them, which is what made the nav feel laggy.
+   */
+  const isActive = (href: string) => {
+    if (href.startsWith('/#')) return onHome && activeSection === href.slice(2);
+    if (href === '/') return onHome && (activeSection === 'top' || activeSection === null);
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
 
   return (
     <header
@@ -67,14 +123,14 @@ export function Header() {
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Logo />
 
-        <nav aria-label="Main" className="hidden items-center gap-1 lg:flex">
+        <nav aria-label="Main" className="hidden items-center gap-0.5 lg:flex xl:gap-1">
           {NAV.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               aria-current={isActive(item.href) ? 'page' : undefined}
               className={cn(
-                'relative rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200',
+                'relative whitespace-nowrap rounded-md px-2.5 py-2 text-sm font-medium transition-colors duration-200 xl:px-3',
                 isActive(item.href) ? 'text-fg' : 'text-muted hover:text-fg',
               )}
             >
@@ -110,7 +166,7 @@ export function Header() {
           <LanguageSelector className="hidden sm:block" />
           <ThemeToggle />
 
-          <Link href="/downloader" className="hidden lg:block">
+          <Link href="/downloader" className="hidden xl:block">
             <Button size="md" trailingIcon={<ArrowRight className="size-4" />} tabIndex={-1}>
               {t('nav.start')}
             </Button>

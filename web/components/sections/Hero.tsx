@@ -38,7 +38,10 @@ export function Hero() {
   ];
 
   return (
-    <section className="relative isolate overflow-hidden px-4 pb-20 pt-14 sm:px-6 sm:pt-20 lg:px-8">
+    <section
+      id="top"
+      className="relative isolate overflow-hidden px-4 pb-20 pt-14 sm:px-6 sm:pt-20 lg:px-8"
+    >
       <AmbientBackground />
 
       <div className="mx-auto flex w-full max-w-3xl flex-col items-center text-center">
