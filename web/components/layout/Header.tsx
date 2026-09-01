@@ -18,11 +18,32 @@ interface NavItem {
 }
 
 /**
- * Highlights whichever anchor section is currently under the reader's eye.
- * The tall negative margins leave a thin band across the middle of the
- * viewport, so exactly one section qualifies at a time and the pill does not
- * flicker between two of them while scrolling.
+ * Picks the section a reader is currently on: the last one whose top has
+ * passed the reading line.
+ *
+ * The bottom rule matters. A short final section can never scroll far enough
+ * for its top to reach the line, because the page runs out of scroll first —
+ * which is exactly why the last nav entries could never light up. Once the
+ * page is scrolled to the end, the last section wins outright.
+ *
+ * Pure, so the rule can be checked without a browser.
  */
+export function pickActiveSection(
+  sections: { id: string; top: number }[],
+  line: number,
+  atBottom: boolean,
+): string | null {
+  if (sections.length === 0) return null;
+  if (atBottom) return sections[sections.length - 1]!.id;
+
+  let current = sections[0]!.id;
+  for (const section of sections) {
+    if (section.top <= line) current = section.id;
+  }
+  return current;
+}
+
+/** Tracks the section under the reading line, rAF-throttled so it stays smooth. */
 function useActiveSection(ids: string[], enabled: boolean): string | null {
   const [active, setActive] = useState<string | null>(null);
   const key = ids.join(',');
@@ -33,30 +54,39 @@ function useActiveSection(ids: string[], enabled: boolean): string | null {
       return;
     }
 
-    const elements = key
-      .split(',')
-      .map((id) => document.getElementById(id))
-      .filter((element): element is HTMLElement => element !== null);
-    if (elements.length === 0) return;
+    const wanted = key.split(',');
+    let frame = 0;
 
-    const visible = new Set<string>();
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) visible.add(entry.target.id);
-          else visible.delete(entry.target.id);
-        }
-        // Topmost qualifying section wins. When none qualifies — scrolling
-        // through a section with no nav entry — the previous one is kept, so
-        // the pill holds still instead of blinking back to Home.
-        const first = elements.find((element) => visible.has(element.id));
-        if (first) setActive(first.id);
-      },
-      { rootMargin: '-40% 0px -55% 0px', threshold: 0 },
-    );
+    const measure = () => {
+      frame = 0;
+      const sections = wanted
+        .map((id) => {
+          const element = document.getElementById(id);
+          if (!element) return null;
+          return { id, top: element.getBoundingClientRect().top + window.scrollY };
+        })
+        .filter((entry): entry is { id: string; top: number } => entry !== null);
 
-    elements.forEach((element) => observer.observe(element));
-    return () => observer.disconnect();
+      // A third of the way down the viewport reads as "what I am looking at".
+      const line = window.scrollY + window.innerHeight * 0.35;
+      const atBottom =
+        window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+
+      setActive(pickActiveSection(sections, line, atBottom));
+    };
+
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(measure);
+    };
+
+    measure();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
   }, [key, enabled]);
 
   return active;
@@ -123,7 +153,7 @@ export function Header() {
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Logo />
 
-        <nav aria-label="Main" className="hidden items-center gap-0.5 lg:flex xl:gap-1">
+        <nav aria-label="Main" className="hidden min-w-0 items-center gap-0.5 lg:flex xl:gap-1">
           {NAV.map((item) => (
             <Link
               key={item.href}
@@ -146,7 +176,7 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <Link
             href="/history"
             aria-label={t('nav.history')}
