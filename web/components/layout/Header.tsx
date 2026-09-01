@@ -75,17 +75,26 @@ function useActiveSection(ids: string[], enabled: boolean): string | null {
       setActive(pickActiveSection(sections, line, atBottom));
     };
 
-    const onScroll = () => {
+    const schedule = () => {
       if (!frame) frame = requestAnimationFrame(measure);
     };
 
     measure();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+
+    // The header never unmounts, so on returning to the home route this effect
+    // re-runs before the page's sections exist. Watching the document's size
+    // catches them arriving — and also covers fonts loading and the FAQ
+    // accordion opening, both of which move every offset below them.
+    const resizeObserver = new ResizeObserver(schedule);
+    resizeObserver.observe(document.documentElement);
+
     return () => {
       if (frame) cancelAnimationFrame(frame);
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+      resizeObserver.disconnect();
     };
   }, [key, enabled]);
 
