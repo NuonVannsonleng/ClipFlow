@@ -52,7 +52,7 @@ export function Hero() {
 
         <motion.h1
           {...rise(0.06)}
-          className="mt-6 text-balance text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl lg:text-[3.5rem]"
+          className="text-gradient mt-6 text-balance pb-1 text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl lg:text-[3.5rem]"
         >
           {t('hero.title')}
         </motion.h1>
@@ -65,7 +65,12 @@ export function Hero() {
         </motion.p>
       </div>
 
-      <motion.div {...rise(0.18)} className="mx-auto mt-10 w-full max-w-2xl">
+      <motion.div {...rise(0.18)} className="relative mx-auto mt-10 w-full max-w-2xl">
+        {/* Pool of light under the input, so the eye lands on it first. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -inset-x-8 -top-10 -z-10 h-40 bg-[radial-gradient(50%_60%_at_50%_50%,var(--cf-primary)_0%,transparent_70%)] opacity-[0.14] blur-2xl dark:opacity-25"
+        />
         <CapabilityNotice className="mb-5" />
         <DownloaderPanel autoFocus />
       </motion.div>

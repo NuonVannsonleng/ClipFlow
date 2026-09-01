@@ -26,6 +26,7 @@
     "platforms": "Supported Platforms",
     "platformsShort": "Platforms",
     "features": "Features",
+    "pricing": "Pricing",
     "faq": "FAQ",
     "history": "History",
     "settings": "Settings",
@@ -159,6 +160,47 @@
     "responsiveBody": "Works beautifully across desktop, tablet, and mobile.",
     "privacyTitle": "Privacy Focused",
     "privacyBody": "No account, no unnecessary storage, and temporary files clean themselves up."
+  },
+  "pricing": {
+    "eyebrow": "Pricing",
+    "title": "Simple pricing, no surprises",
+    "subtitle": "Start free and stay free for everyday downloads. Upgrade only when you need higher quality, more speed, or automation.",
+    "billingPeriod": "Billing period",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "saveBadge": "Save {percent}% with yearly billing",
+    "perMonth": "/ month",
+    "billedMonthly": "Billed monthly, cancel anytime",
+    "billedYearly": "Billed ${total} once a year",
+    "freeForever": "Free forever, no card needed",
+    "popular": "Most Popular",
+    "free": {
+      "name": "Free",
+      "desc": "Everything you need to save the occasional clip.",
+      "cta": "Get started",
+      "f1": "Downloads up to 720p",
+      "f2": "Standard processing speed",
+      "f3": "One link at a time"
+    },
+    "pro": {
+      "name": "Pro",
+      "desc": "For people who save media every day.",
+      "cta": "Upgrade to Pro",
+      "f1": "Downloads up to 4K, when the source has it",
+      "f2": "Priority processing on faster servers",
+      "f3": "Batch downloading, up to 10 links at once",
+      "f4": "No ads, anywhere"
+    },
+    "max": {
+      "name": "Max",
+      "desc": "For heavy use and automation.",
+      "cta": "Upgrade to Max",
+      "f1": "Unlimited downloads",
+      "f2": "API access with your own key",
+      "f3": "Priority support",
+      "f4": "Everything in Pro"
+    },
+    "note": "Prices in USD. Billing and plan limits are not switched on yet, so everything ClipFlow can do today is free while it is in development."
   },
   "how": {
     "title": "How It Works",

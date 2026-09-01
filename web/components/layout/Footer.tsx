@@ -16,6 +16,7 @@ export function Footer() {
         { href: '/downloader', label: t('nav.downloader') },
         { href: '/platforms', label: t('nav.platforms') },
         { href: '/#features', label: t('nav.features') },
+        { href: '/#pricing', label: t('nav.pricing') },
         { href: '/#faq', label: t('nav.faq') },
       ],
     },

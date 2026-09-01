@@ -22,6 +22,7 @@ const NAV: NavItem[] = [
   { href: '/downloader', labelKey: 'nav.downloader' },
   { href: '/platforms', labelKey: 'nav.platformsShort' },
   { href: '/#features', labelKey: 'nav.features' },
+  { href: '/#pricing', labelKey: 'nav.pricing' },
   { href: '/#faq', labelKey: 'nav.faq' },
 ];
 

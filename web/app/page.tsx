@@ -1,4 +1,5 @@
 import { Hero } from '@/components/sections/Hero';
+import { PricingSection } from '@/components/sections/Pricing';
 import {
   FaqSection,
   FeaturesSection,
@@ -20,6 +21,7 @@ export default function HomePage() {
       <FormatsSection />
       <HowItWorksSection />
       <FeaturesSection />
+      <PricingSection />
       <FaqSection />
       <ResponsibleUseSection />
     </>

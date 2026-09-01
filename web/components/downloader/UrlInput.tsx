@@ -81,7 +81,10 @@ export const UrlInput = forwardRef<HTMLInputElement, UrlInputProps>(function Url
         className={cn(
           'group relative flex items-center gap-2 rounded-lg border bg-surface pl-3.5 pr-2 transition-[border-color,box-shadow] duration-200',
           size === 'lg' ? 'h-16 sm:h-[4.25rem]' : 'h-12',
+          // Focus reads as a ring plus a soft outward glow, so the field feels
+          // lit rather than merely outlined.
           'shadow-sm focus-within:border-primary focus-within:ring-4 focus-within:ring-[var(--cf-ring)]/25',
+          'focus-within:shadow-[0_10px_36px_-12px_var(--cf-primary)]',
           tone === 'error' ? 'border-danger/60' : 'border-line',
           disabled && 'opacity-60',
         )}
