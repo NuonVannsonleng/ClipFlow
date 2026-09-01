@@ -170,7 +170,7 @@ function TierCard({ tier, billing, index }: { tier: Tier; billing: Billing; inde
       {tier.highlighted && (
         <div
           aria-hidden
-          className="pointer-events-none absolute -inset-3 -z-10 rounded-[1.75rem] bg-[radial-gradient(60%_50%_at_50%_0%,var(--cf-primary)_0%,transparent_70%)] opacity-20 blur-2xl dark:opacity-30"
+          className="pointer-events-none absolute -inset-3 -z-10 rounded-2xl bg-[radial-gradient(60%_50%_at_50%_0%,var(--cf-primary)_0%,transparent_70%)] opacity-20 blur-2xl dark:opacity-30"
         />
       )}
 
@@ -178,11 +178,13 @@ function TierCard({ tier, billing, index }: { tier: Tier; billing: Billing; inde
         className={cn(
           'relative flex w-full flex-col rounded-2xl p-px transition-transform duration-300',
           tier.highlighted
-            ? 'bg-[linear-gradient(140deg,var(--cf-primary),var(--cf-accent)_55%,transparent_85%)] shadow-lg'
+            ? 'bg-[linear-gradient(150deg,var(--cf-primary),var(--cf-accent)_50%,var(--cf-primary))] shadow-lg'
             : 'bg-line',
         )}
       >
-        <div className="flex h-full flex-col rounded-[calc(1rem-1px)] bg-surface p-6 sm:p-7">
+        {/* Inner radius must be the outer radius (--radius-2xl) minus the 1px
+            ring, or the border wedges out at the corners. */}
+        <div className="flex h-full flex-col rounded-[calc(1.75rem-1px)] bg-surface p-6 sm:p-7">
           {tier.highlighted && (
             <span className="absolute -top-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-fg shadow-[0_6px_20px_-8px_var(--cf-primary)]">
               <Zap aria-hidden className="size-3.5" />
