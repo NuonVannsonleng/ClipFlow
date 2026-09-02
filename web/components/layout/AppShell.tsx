@@ -73,16 +73,19 @@ function PageTransition({ children }: { children: ReactNode }) {
     // landmark, so it must never be duplicated. The pathname-keyed animation
     // lives on an *inner* div instead - keying the landmark itself briefly
     // produced two elements sharing id="main" (invalid HTML, and two live
-    // main landmarks mid-navigation), and independently confused popLayout's
-    // exit bookkeeping into animating two copies of the incoming page against
-    // each other rather than a clean outgoing/incoming crossfade.
+    // main landmarks mid-navigation).
     //
-    // popLayout still overlaps the crossfade instead of serialising it -
-    // mode="wait" left a real blank gap between pages, worse than the
-    // animation duration alone once a first-time route visit's compile cost
-    // in dev landed inside that same window.
-    <main id="main" className="relative flex-1">
-      <AnimatePresence mode="popLayout" initial={false}>
+    // Deliberately not mode="popLayout": its layout-measurement bookkeeping
+    // proved unreliable under real network timing - verified live, an exiting
+    // page would sometimes never receive its exit-complete callback and stay
+    // mounted forever at position:absolute/opacity:0, permanently inflating
+    // the document's scrollable height by its own (invisible) size. Plain
+    // overlap trades that away for a real but minor cost: for the ~240ms
+    // crossfade the outgoing and incoming page both sit in normal flow, so
+    // the page is briefly taller and the footer briefly shifts - self-
+    // correcting, and never leaves the layout in a broken state.
+    <main id="main" className="flex-1">
+      <AnimatePresence initial={false}>
         <motion.div
           key={pathname}
           initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
