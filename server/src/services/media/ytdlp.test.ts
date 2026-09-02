@@ -20,7 +20,8 @@ describe('classify', () => {
   it.each([
     ['ERROR: Private video. Sign in if you have access to this video.', 'PRIVATE_CONTENT'],
     ['ERROR: This video is only available to Music Premium members', 'PROCESSING_FAILED'],
-    ['ERROR: Sign in to confirm your age', 'PRIVATE_CONTENT'],
+    ['ERROR: Sign in to confirm your age', 'PLATFORM_RESTRICTED'],
+    ["ERROR: [youtube] dNKyQe9o0Ic: Sign in to confirm you're not a bot. Use --cookies-from-browser or --cookies for the authentication.", 'PLATFORM_RESTRICTED'],
     ['ERROR: This video is DRM protected', 'PLATFORM_RESTRICTED'],
     ['ERROR: Unsupported URL: https://example.com/foo', 'UNSUPPORTED_PLATFORM'],
     ['ERROR: [youtube] abc123: Video unavailable', 'NOT_FOUND'],

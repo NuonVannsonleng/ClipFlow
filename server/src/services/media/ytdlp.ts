@@ -16,8 +16,12 @@ const PROGRESS_PREFIX = '@@CF@@';
  * PROCESSING_FAILED so raw tool text never reaches the client.
  */
 const ERROR_MARKERS: { pattern: RegExp; code: ConstructorParameters<typeof AppError>[0] }[] = [
-  { pattern: /private video|this video is private|login required|requires authentication|sign in to confirm|account.*cookies|not authorized/i, code: 'PRIVATE_CONTENT' },
+  { pattern: /private video|this video is private|login required|requires authentication|account.*cookies|not authorized/i, code: 'PRIVATE_CONTENT' },
   { pattern: /drm|protected content|widevine|fairplay/i, code: 'PLATFORM_RESTRICTED' },
+  // YouTube's bot/age verification challenge, not an actual privacy restriction
+  // on the video — triggered by the request itself (e.g. datacenter IPs), not
+  // by the uploader's settings.
+  { pattern: /sign in to confirm/i, code: 'PLATFORM_RESTRICTED' },
   { pattern: /unsupported url|no video formats|is not a valid url/i, code: 'UNSUPPORTED_PLATFORM' },
   { pattern: /video unavailable|removed by the uploader|does not exist|404|has been terminated|no longer available/i, code: 'NOT_FOUND' },
   { pattern: /geo.?restrict|not available in your country|blocked in your country/i, code: 'PLATFORM_RESTRICTED' },
