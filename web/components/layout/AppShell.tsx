@@ -23,14 +23,15 @@ function SkipLink() {
 /**
  * Restores scroll as the incoming page mounts.
  *
- * `mode="wait"` holds the new page back until the old one has animated out,
- * so Next's own scroll handling runs while the previous — possibly far
- * taller — document is still on screen. Landing on a short page such as
- * /downloader then leaves you partway down it, and a cross-route link like
- * /#pricing never reaches its section. Mounting with the new page is the
- * first moment the real offsets exist.
+ * Next's own scroll handling can run before the incoming page has laid
+ * out — the previous, possibly far taller, document may still be what the
+ * browser measures against. Landing on a short page such as /downloader
+ * then leaves you partway down it, and a cross-route link like /#pricing
+ * never reaches its section. Mounting with the new page is the first
+ * moment its real offsets exist, so scroll restoration happens here
+ * rather than eagerly during the route change.
  *
- * Rendered inside the keyed <main>, so it remounts once per navigation.
+ * Rendered inside the keyed inner div, so it remounts once per navigation.
  */
 function RouteScroll({ skipTop }: { skipTop: boolean }) {
   const reduceMotion = useReducedMotion();
@@ -67,20 +68,33 @@ function PageTransition({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.main
-        key={pathname}
-        id="main"
-        initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
-        transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-        className="flex-1"
-      >
-        <RouteScroll skipTop={firstRender.current} />
-        {children}
-      </motion.main>
-    </AnimatePresence>
+    // <main id="main"> stays a single, unkeyed element for the life of the
+    // app: it is both the skip-link's target and the page's only "main"
+    // landmark, so it must never be duplicated. The pathname-keyed animation
+    // lives on an *inner* div instead - keying the landmark itself briefly
+    // produced two elements sharing id="main" (invalid HTML, and two live
+    // main landmarks mid-navigation), and independently confused popLayout's
+    // exit bookkeeping into animating two copies of the incoming page against
+    // each other rather than a clean outgoing/incoming crossfade.
+    //
+    // popLayout still overlaps the crossfade instead of serialising it -
+    // mode="wait" left a real blank gap between pages, worse than the
+    // animation duration alone once a first-time route visit's compile cost
+    // in dev landed inside that same window.
+    <main id="main" className="relative flex-1">
+      <AnimatePresence mode="popLayout" initial={false}>
+        <motion.div
+          key={pathname}
+          initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
+          transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <RouteScroll skipTop={firstRender.current} />
+          {children}
+        </motion.div>
+      </AnimatePresence>
+    </main>
   );
 }
 
