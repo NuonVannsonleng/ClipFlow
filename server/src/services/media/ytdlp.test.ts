@@ -1,5 +1,20 @@
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { classify } from './ytdlp.js';
+import { classify, shouldPassFfmpegLocation } from './ytdlp.js';
+
+describe('shouldPassFfmpegLocation', () => {
+  it.each([
+    [null, false],
+    ['ffmpeg', false],
+    ['ffprobe', false],
+    // Real resolved paths (an env-var override, or capabilities.ts's
+    // path.join(env.binDir, exeName)) always use the platform's separator.
+    [path.join(path.sep, 'usr', 'local', 'bin', 'ffmpeg'), true],
+    [path.join('D:', 'ClipFlow', 'server', 'bin', 'ffmpeg.exe'), true],
+  ] as const)('%j -> %s', (ffmpeg, expected) => {
+    expect(shouldPassFfmpegLocation(ffmpeg)).toBe(expected);
+  });
+});
 
 describe('classify', () => {
   it.each([

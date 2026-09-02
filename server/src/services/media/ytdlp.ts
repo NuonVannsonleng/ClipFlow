@@ -29,6 +29,16 @@ const ERROR_MARKERS: { pattern: RegExp; code: ConstructorParameters<typeof AppEr
   { pattern: /file is larger than max-filesize/i, code: 'FILE_TOO_LARGE' },
 ];
 
+/**
+ * `--ffmpeg-location` is only safe to pass a resolved filesystem path: yt-dlp
+ * treats the value as a literal path rather than a PATH lookup, so a bare
+ * command name like "ffmpeg" makes it report the tool as missing even though
+ * it works fine on PATH.
+ */
+export function shouldPassFfmpegLocation(ffmpeg: string | null): ffmpeg is string {
+  return Boolean(ffmpeg) && ffmpeg!.includes(path.sep);
+}
+
 export function classify(output: string): AppError {
   for (const { pattern, code } of ERROR_MARKERS) {
     if (pattern.test(output)) {
@@ -280,7 +290,9 @@ export async function downloadWithYtdlp({
     path.join(workDir, '%(title).100B.%(ext)s'),
   ];
 
-  if (tools.ffmpeg) args.push('--ffmpeg-location', tools.ffmpeg);
+  if (shouldPassFfmpegLocation(tools.ffmpeg)) {
+    args.push('--ffmpeg-location', tools.ffmpeg);
+  }
 
   if (selection.kind === 'video') {
     if (tools.ffmpeg) args.push('--merge-output-format', selection.container);
