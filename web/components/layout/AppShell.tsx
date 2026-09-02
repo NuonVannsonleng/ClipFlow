@@ -1,6 +1,6 @@
 'use client';
 
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Providers } from '@/app/providers';
@@ -70,33 +70,33 @@ function PageTransition({ children }: { children: ReactNode }) {
   return (
     // <main id="main"> stays a single, unkeyed element for the life of the
     // app: it is both the skip-link's target and the page's only "main"
-    // landmark, so it must never be duplicated. The pathname-keyed animation
-    // lives on an *inner* div instead - keying the landmark itself briefly
-    // produced two elements sharing id="main" (invalid HTML, and two live
-    // main landmarks mid-navigation).
+    // landmark, so it must never be duplicated.
     //
-    // Deliberately not mode="popLayout": its layout-measurement bookkeeping
-    // proved unreliable under real network timing - verified live, an exiting
-    // page would sometimes never receive its exit-complete callback and stay
-    // mounted forever at position:absolute/opacity:0, permanently inflating
-    // the document's scrollable height by its own (invisible) size. Plain
-    // overlap trades that away for a real but minor cost: for the ~240ms
-    // crossfade the outgoing and incoming page both sit in normal flow, so
-    // the page is briefly taller and the footer briefly shifts - self-
-    // correcting, and never leaves the layout in a broken state.
+    // Deliberately no AnimatePresence/exit animation here. Two earlier
+    // attempts (mode="popLayout", then plain AnimatePresence overlap) were
+    // both verified live to sometimes never fire their exit-complete
+    // callback on the deployed site - the outgoing page stayed mounted
+    // forever at opacity:0, permanently inflating the document's scrollable
+    // height by its own invisible size. Neither local dev nor a local
+    // production build reproduced it; only the deployed environment's
+    // timing triggered it, and it never recovered without a hard reload.
+    //
+    // Rendering the keyed div directly, with no AnimatePresence wrapper,
+    // makes that failure mode structurally impossible: React unmounts the
+    // outgoing element the instant pathname changes, synchronously, with no
+    // animation-completion callback in the loop to fail to fire. The
+    // outgoing page loses its fade-out (it simply disappears); the
+    // incoming page keeps its fade-in.
     <main id="main" className="flex-1">
-      <AnimatePresence initial={false}>
-        <motion.div
-          key={pathname}
-          initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
-          transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <RouteScroll skipTop={firstRender.current} />
-          {children}
-        </motion.div>
-      </AnimatePresence>
+      <motion.div
+        key={pathname}
+        initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <RouteScroll skipTop={firstRender.current} />
+        {children}
+      </motion.div>
     </main>
   );
 }
