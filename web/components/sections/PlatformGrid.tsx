@@ -51,7 +51,7 @@ export function PlatformGrid({ limit, className }: { limit?: number; className?:
           viewport={{ once: true, margin: '-60px' }}
           transition={{ duration: 0.4, delay: Math.min(index * 0.035, 0.28), ease: [0.22, 1, 0.36, 1] }}
         >
-          <Card interactive className="flex h-full flex-col gap-4 p-5">
+          <Card spotlight className="flex h-full flex-col gap-4 p-5">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
                 <PlatformIcon platform={platform.id} size="md" />

@@ -2,7 +2,7 @@
 
 import { motion, useReducedMotion } from 'framer-motion';
 import { Check } from 'lucide-react';
-import type { HTMLAttributes, ReactNode } from 'react';
+import { useRef, type HTMLAttributes, type MouseEvent, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 /* --------------------------------------------------------------- Card ---- */
@@ -10,18 +10,59 @@ import { cn } from '@/lib/utils';
 export function Card({
   className,
   interactive = false,
+  spotlight = false,
+  onMouseMove,
+  children,
   ...props
-}: HTMLAttributes<HTMLDivElement> & { interactive?: boolean }) {
+}: HTMLAttributes<HTMLDivElement> & {
+  interactive?: boolean;
+  /**
+   * A soft radial glow that follows the cursor, tinted with the brand hue.
+   * Pure CSS after the initial move — a mousemove handler only writes two
+   * custom properties, so there is no per-frame React render. Implies
+   * `interactive`. Skips the cursor tracking under reduced motion, but keeps
+   * the plain hover lift so the card still responds to touch.
+   */
+  spotlight?: boolean;
+}) {
+  const reduceMotion = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+
+  const handleMove = (event: MouseEvent<HTMLDivElement>) => {
+    onMouseMove?.(event);
+    if (reduceMotion || !ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    ref.current.style.setProperty('--spot-x', `${event.clientX - rect.left}px`);
+    ref.current.style.setProperty('--spot-y', `${event.clientY - rect.top}px`);
+  };
+
   return (
     <div
+      ref={ref}
+      onMouseMove={spotlight ? handleMove : onMouseMove}
       className={cn(
-        'rounded-xl border border-line bg-surface shadow-sm',
-        interactive &&
-          'transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-line-strong hover:shadow-md',
+        'relative rounded-xl border border-line bg-surface shadow-sm',
+        (interactive || spotlight) &&
+          'group transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-line-strong hover:shadow-md',
+        spotlight && 'overflow-hidden',
         className,
       )}
       {...props}
-    />
+    >
+      {spotlight && !reduceMotion && (
+        // Absolutely positioned, so it never becomes a flex/grid item and
+        // cannot disturb a caller's own `flex flex-col gap-*` on the card.
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+          style={{
+            background:
+              'radial-gradient(420px circle at var(--spot-x, 50%) var(--spot-y, 50%), color-mix(in srgb, var(--cf-primary) 14%, transparent), transparent 72%)',
+          }}
+        />
+      )}
+      {children}
+    </div>
   );
 }
 

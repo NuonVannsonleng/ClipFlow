@@ -204,7 +204,7 @@ export function FeaturesSection() {
       <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {features.map((feature, index) => (
           <Reveal key={feature.title} delay={index * 0.07}>
-            <Card interactive className="h-full p-6">
+            <Card spotlight className="h-full p-6">
               <span
                 aria-hidden
                 className="inline-flex size-11 items-center justify-center rounded-lg bg-primary-soft text-primary [&>svg]:size-5"
