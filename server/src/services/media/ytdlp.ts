@@ -29,7 +29,7 @@ const ERROR_MARKERS: { pattern: RegExp; code: ConstructorParameters<typeof AppEr
   { pattern: /file is larger than max-filesize/i, code: 'FILE_TOO_LARGE' },
 ];
 
-function classify(output: string): AppError {
+export function classify(output: string): AppError {
   for (const { pattern, code } of ERROR_MARKERS) {
     if (pattern.test(output)) {
       return new AppError(code);
