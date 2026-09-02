@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: clipflow-api
+    runtime: docker
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MEDIA_PROVIDER
+        value: auto
+      - key: CORS_ORIGINS
+        value: https://clip-flow-swart.vercel.app
