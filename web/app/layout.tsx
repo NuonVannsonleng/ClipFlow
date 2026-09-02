@@ -3,6 +3,7 @@ import { Inter, Noto_Sans_Khmer } from 'next/font/google';
 import type { ReactNode } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
 import { themeBootstrapScript } from '@/lib/settings';
+import { siteUrl } from '@/lib/site-url';
 import './globals.css';
 
 const inter = Inter({
@@ -17,8 +18,6 @@ const khmer = Noto_Sans_Khmer({
   display: 'swap',
   variable: '--font-khmer',
 });
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
