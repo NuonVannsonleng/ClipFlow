@@ -191,13 +191,6 @@ function baseArgs(): string[] {
     '2',
     '--fragment-retries',
     '2',
-    // Anonymous client surface selection (no auth/cookies involved) — the
-    // default web client is disproportionately hit by YouTube's IP-reputation
-    // bot-check on datacenter hosts; android/ios clients are not. Keep `web`
-    // as a fallback so formats the mobile clients don't expose are still
-    // available.
-    '--extractor-args',
-    'youtube:player_client=android,web',
   ];
 }
 
